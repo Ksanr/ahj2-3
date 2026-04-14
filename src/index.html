@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Table - In-Memory Sorting</title>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Top Movies <span style="font-size: 14px;">(In-Memory Sorting)</span></h1>
+        <div class="sort-indicator">
+            Сортировка меняется каждые 2 секунды
+        </div>
+        <div class="table-wrapper">
+            <table id="movieTable" class="movie-table">
+                <thead>
+                    <tr>
+                        <th data-field="id">ID <span class="arrow"></span></th>
+                        <th data-field="title">Title <span class="arrow"></span></th>
+                        <th data-field="year">Year <span class="arrow"></span></th>
+                        <th data-field="imdb">IMDB <span class="arrow"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Данные будут загружены и отображены здесь -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
