@@ -23,6 +23,8 @@
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "lint": "eslint src/**/*.js",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "coverage": "jest --coverage"
   }
 }

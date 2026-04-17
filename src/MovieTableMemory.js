@@ -1,27 +1,29 @@
 import moviesData from './movies.json';
 
+// Константы для настройки
+const SORT_INTERVAL_MS = 2000;
+const IMDB_DECIMAL_PLACES = 2;
+const SORT_FIELDS = ['id', 'title', 'year', 'imdb'];
+const SORT_ORDERS = ['asc', 'desc'];
+
 export default class MovieTableMemory {
   constructor() {
-    // Хранение исходных данных в памяти
     this.originalData = [...moviesData];
     this.sortedData = [...moviesData];
-
-    // Настройки сортировки
-    this.sortOrders = ['asc', 'desc'];
-    this.fields = ['id', 'title', 'year', 'imdb'];
+    this.sortOrders = SORT_ORDERS;
+    this.fields = SORT_FIELDS;
     this.currentFieldIndex = 0;
     this.currentOrderIndex = 0;
     this.intervalId = null;
   }
 
-  // Форматирование числа с двумя знаками после запятой
+  // Форматирование числа с указанным количеством знаков после запятой
   formatIMDB(value) {
-    return value.toFixed(2);
+    return value.toFixed(IMDB_DECIMAL_PLACES);
   }
 
-  // Сортировка массива в памяти
+  // Сортировка данных в памяти
   sortData(field, order) {
-    // Создаем копию массива для сортировки (не мутируем оригинал)
     const sorted = [...this.originalData];
 
     sorted.sort((a, b) => {
@@ -45,11 +47,11 @@ export default class MovieTableMemory {
     return this.sortedData;
   }
 
-  // Создание строки таблицы из объекта данных
+  // Создание строки таблицы с data-атрибутами
   createRow(movie) {
     const tr = document.createElement('tr');
 
-    // Добавляем data-атрибуты для обратной совместимости
+    // Установка data-атрибутов
     tr.setAttribute('data-id', movie.id);
     tr.setAttribute('data-title', movie.title);
     tr.setAttribute('data-year', movie.year);
@@ -76,12 +78,13 @@ export default class MovieTableMemory {
     return tr;
   }
 
-  // Полная перерисовка таблицы (пересборка DOM)
+  // Полная перерисовка таблицы
   renderTable(container) {
-    // Очищаем контейнер
-    container.innerHTML = '';
+    if (!container) {
+      throw new Error('Контейнер для отображения таблицы не найден');
+    }
 
-    // Перебираем отсортированные данные и создаем строки
+    container.innerHTML = '';
     this.sortedData.forEach(movie => {
       container.appendChild(this.createRow(movie));
     });
@@ -90,15 +93,20 @@ export default class MovieTableMemory {
   // Обновление стрелок в заголовке
   updateArrows(field, order) {
     // Очищаем все стрелки
-    document.querySelectorAll('.arrow').forEach(arrow => {
-      arrow.className = 'arrow';
-    });
+    const allArrows = document.querySelectorAll('.arrow');
+    if (allArrows.length > 0) {
+      allArrows.forEach(arrow => {
+        arrow.className = 'arrow';
+      });
+    }
 
     // Находим нужный заголовок
     const th = document.querySelector(`th[data-field="${field}"]`);
     if (th) {
       const arrow = th.querySelector('.arrow');
-      arrow.classList.add(order === 'asc' ? 'asc' : 'desc');
+      if (arrow) {
+        arrow.classList.add(order === 'asc' ? 'asc' : 'desc');
+      }
     }
   }
 
@@ -107,6 +115,11 @@ export default class MovieTableMemory {
     const currentField = this.fields[this.currentFieldIndex];
     const currentOrder = this.sortOrders[this.currentOrderIndex];
     const indicator = document.querySelector('.sort-indicator');
+
+    if (!indicator) {
+      return;
+    }
+
     const orderText = currentOrder === 'asc' ? 'по возрастанию' : 'по убыванию';
     const fieldNames = {
       id: 'ID',
@@ -114,12 +127,12 @@ export default class MovieTableMemory {
       year: 'году выпуска',
       imdb: 'рейтингу IMDB'
     };
-    indicator.innerHTML = `🔄 Сортировка по ${fieldNames[currentField]} (${orderText}) | Обновляется каждые 2 секунды | In-Memory Storage`;
+
+    indicator.textContent = `Сортировка по ${fieldNames[currentField]} (${orderText}) | Обновляется каждые ${SORT_INTERVAL_MS / 1000} секунды | In-Memory Storage`;
   }
 
   // Следующий этап сортировки
   nextSort() {
-    // Обновляем индексы
     this.currentOrderIndex++;
     if (this.currentOrderIndex >= this.sortOrders.length) {
       this.currentOrderIndex = 0;
@@ -132,14 +145,14 @@ export default class MovieTableMemory {
     const currentField = this.fields[this.currentFieldIndex];
     const currentOrder = this.sortOrders[this.currentOrderIndex];
 
-    // Сортируем данные в памяти
     this.sortData(currentField, currentOrder);
 
-    // Полностью перерисовываем таблицу
     const tbody = document.getElementById('tableBody');
-    this.renderTable(tbody);
+    if (!tbody) {
+      throw new Error('Элемент tableBody не найден в DOM');
+    }
 
-    // Обновляем визуальные индикаторы
+    this.renderTable(tbody);
     this.updateArrows(currentField, currentOrder);
     this.updateIndicator();
   }
@@ -149,12 +162,12 @@ export default class MovieTableMemory {
     this.updateIndicator();
     this.intervalId = setInterval(() => {
       this.nextSort();
-    }, 2000);
+    }, SORT_INTERVAL_MS);
   }
 
   // Остановка автоматической сортировки
   stopAutoSort() {
-    if (this.intervalId) {
+    if (this.intervalId !== null) {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
@@ -163,6 +176,9 @@ export default class MovieTableMemory {
   // Инициализация таблицы
   init() {
     const tbody = document.getElementById('tableBody');
+    if (!tbody) {
+      throw new Error('Элемент tableBody не найден в DOM при инициализации');
+    }
     this.renderTable(tbody);
     this.startAutoSort();
   }
